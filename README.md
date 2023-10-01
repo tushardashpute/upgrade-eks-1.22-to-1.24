@@ -1,65 +1,72 @@
-Scope
+**Scope**
 
 Upgrade an existing Amazon EKS cluster from version 1.22 to 1.24 while ensuring minimal disruption to the running workloads and maintaining the cluster's integrity and reliability.
 
-Approach
+**Approach**
 
 
 ![Uploading image.png…]()
 
 
-Control Plane Upgrade to 1.23:
-Initiate the upgrade process by first upgrading the control plane from version 1.22 to 1.23.
+**Control Plane Upgrade to 1.23:**
+
+ - Initiate the upgrade process by first upgrading the control plane from version 1.22 to 1.23.
+
 This step will involve minimal downtime as control plane components are upgraded while maintaining the worker nodes on version 1.22.
-Monitor the control plane upgrade closely to ensure successful completion.
-Addon Upgrades (Kube-Proxy, VPC-CNI, CoreDNS, EBS-CSI Driver):
-After successfully upgrading the control plane to version 1.23, focus on upgrading essential addons.
-Upgrade Kube-Proxy, VPC-CNI, CoreDNS, and EBS-CSI driver to versions compatible with EKS 1.23.
-Ensure that the addons are upgraded one by one, and their functionality is validated at each step.
-Control Plane Upgrade to 1.24:
-With the upgraded addons in place and validated, proceed to upgrade the control plane to version 1.24.
+
+ - Monitor the control plane upgrade closely to ensure successful completion.
+
+ - Addon Upgrades (Kube-Proxy, VPC-CNI, CoreDNS, EBS-CSI Driver):
+
+  After successfully upgrading the control plane to version 1.23, focus on upgrading essential addons.
+  Upgrade Kube-Proxy, VPC-CNI, CoreDNS, and EBS-CSI driver to versions compatible with EKS 1.23.
+  Ensure that the addons are upgraded one by one, and their functionality is validated at each step.
+
+**Control Plane Upgrade to 1.24:**
+
+ - With the upgraded addons in place and validated, proceed to upgrade the control plane to version 1.24.
+
 Similar to the first control plane upgrade, this step will ensure that the worker nodes remain unaffected on version 1.22.
 Pay close attention to upgrade logs and any potential issues that might arise during this process.
-Addon Upgrades (Post Control Plane Upgrade):
+
+ - Addon Upgrades (Post Control Plane Upgrade):
+
 After completing the control plane upgrade to version 1.24, revisit the addon upgrades.
 Ensure that the addons (Kube-Proxy, VPC-CNI, CoreDNS, EBS-CSI driver) are compatible with EKS 1.24 and perform necessary upgrades.
 Validate the functionality and performance of the addons after the upgrade.
-Worker Node Upgrades:
+
+**Worker Node Upgrades:**
+
 With the control plane and addons upgraded to version 1.24 and validated, proceed to upgrade the worker nodes.
 Upgrade the worker nodes directly from version 1.22 to version 1.24.
 Implement a phased approach to minimize any potential disruption. Consider draining nodes, updating, and gradually resuming workloads.
-Release Notes 1.23
 
+_Release Notes 1.23_
 
+  The Kubernetes in-tree to container storage interface (CSI) volume migration feature is enabled. This feature enables the replacement of existing Kubernetes in-tree storage plugins for Amazon EBS with a corresponding Amazon EBS CSI driver. For more information, see Kubernetes 1.17 Feature: Kubernetes In-Tree to CSI Volume Migration Moves to Beta on the Kubernetes blog.
+  
+  The feature translates in-tree APIs to equivalent CSI APIs and delegates operations to a replacement CSI driver. With this feature, if you use existing StorageClass, PersistentVolume, and PersistentVolumeClaim objects that belong to these workloads, there likely won't be any noticeable change. The feature enables Kubernetes to delegate all storage management operations from the in-tree plugin to the CSI driver. If you use Amazon EBS volumes in an existing cluster, install the Amazon EBS CSI driver in your cluster before you update your cluster to version 1.23. If you don't install the driver before updating an existing cluster, interruptions to your workloads might occur. If you plan to deploy workloads that use Amazon EBS volumes in a new 1.23 cluster, install the Amazon EBS CSI driver in your cluster before deploying the workloads your cluster. For instructions on how to install the Amazon EBS CSI driver on your cluster, see Amazon EBS CSI driver. For frequently asked questions about the migration feature, see Amazon EBS CSI migration frequently asked questions.
 
+  
+  Kubernetes stopped supporting dockershim in version 1.20 and removed dockershim in version 1.24. For more information, see Kubernetes is Moving on From Dockershim: Commitments and Next Steps in the Kubernetes blog. Amazon EKS will end support for dockershim starting in Amazon EKS version 1.24. Starting with Amazon EKS version 1.24, Amazon EKS official AMIs will have containerd as the only runtime.
+  
+  Even though Amazon EKS version 1.23 continues to support dockershim, we recommend that you start testing your applications now to identify and remove any Docker dependencies. This way, you are prepared to update your cluster to version 1.24. For more information about dockershim removal, see Amazon EKS ended support for Dockershim.
+  
+  Kubernetes graduated IPv4/IPv6 dual-stack networking for Pods, services, and nodes to general availability. However, Amazon EKS and the Amazon VPC CNI plugin for Kubernetes don't support dual-stack networking. Your clusters can assign IPv4 or IPv6 addresses to Pods and services, but can't assign both address types.
+  
+  Kubernetes graduated the Pod Security Admission (PSA) feature to beta. The feature is enabled by default. For more information, see Pod Security Admission in the Kubernetes documentation. PSA replaces the Pod Security Policy (PSP) admission controller. The PSP admission controller isn't supported and is scheduled for removal in Kubernetes version 1.25.
+  
+  The PSP admission controller enforces Pod security standards on Pods in a namespace based on specific namespace labels that set the enforcement level. For more information, see Pod Security Standards (PSS) and Pod Security Admission (PSA) in the Amazon EKS best practices guide.
+  
+  The kube-proxy image deployed with clusters is now the minimal base image maintained by Amazon EKS Distro (EKS-D). The image contains minimal packages and doesn't have shells or package managers.
+  
+  Kubernetes graduated ephemeral containers to beta. Ephemeral containers are temporary containers that run in the same namespace as an existing Pod. You can use them to observe the state of Pods and containers for troubleshooting and debugging purposes. This is especially useful for interactive troubleshooting when kubectl exec is insufficient because either a container has crashed or a container image doesn't include debugging utilities. An example of a container that includes a debugging utility is distroless images. For more information, see Debugging with an ephemeral debug container in the Kubernetes documentation.
+  
+  Kubernetes graduated the HorizontalPodAutoscaler autoscaling/v2 stable API to general availability. The HorizontalPodAutoscaler autoscaling/v2beta2 API is deprecated. It will be unavailable in 1.26.
+  
+  The goaway-chance option in the Kubernetes API server helps prevent HTTP/2 client connections from being stuck on a single API server instance, by randomly closing a connection. When the connection is closed, the client will try to reconnect, and will likely land on a different API server as a result of load balancing. Amazon EKS version 1.23 has enabled goaway-chance flag. If your workload running on Amazon EKS cluster uses a client that is not compatible with HTTP GOAWAY, we recommend that you update your client to handle GOAWAY by reconnecting on connection termination.
 
-The Kubernetes in-tree to container storage interface (CSI) volume migration feature is enabled. This feature enables the replacement of existing Kubernetes in-tree storage plugins for Amazon EBS with a corresponding Amazon EBS CSI driver. For more information, see Kubernetes 1.17 Feature: Kubernetes In-Tree to CSI Volume Migration Moves to Beta on the Kubernetes blog.
-
-The feature translates in-tree APIs to equivalent CSI APIs and delegates operations to a replacement CSI driver. With this feature, if you use existing StorageClass, PersistentVolume, and PersistentVolumeClaim objects that belong to these workloads, there likely won't be any noticeable change. The feature enables Kubernetes to delegate all storage management operations from the in-tree plugin to the CSI driver. If you use Amazon EBS volumes in an existing cluster, install the Amazon EBS CSI driver in your cluster before you update your cluster to version 1.23. If you don't install the driver before updating an existing cluster, interruptions to your workloads might occur. If you plan to deploy workloads that use Amazon EBS volumes in a new 1.23 cluster, install the Amazon EBS CSI driver in your cluster before deploying the workloads your cluster. For instructions on how to install the Amazon EBS CSI driver on your cluster, see Amazon EBS CSI driver. For frequently asked questions about the migration feature, see Amazon EBS CSI migration frequently asked questions.
-
-
-
-
-Kubernetes stopped supporting dockershim in version 1.20 and removed dockershim in version 1.24. For more information, see Kubernetes is Moving on From Dockershim: Commitments and Next Steps in the Kubernetes blog. Amazon EKS will end support for dockershim starting in Amazon EKS version 1.24. Starting with Amazon EKS version 1.24, Amazon EKS official AMIs will have containerd as the only runtime.
-
-Even though Amazon EKS version 1.23 continues to support dockershim, we recommend that you start testing your applications now to identify and remove any Docker dependencies. This way, you are prepared to update your cluster to version 1.24. For more information about dockershim removal, see Amazon EKS ended support for Dockershim.
-
-Kubernetes graduated IPv4/IPv6 dual-stack networking for Pods, services, and nodes to general availability. However, Amazon EKS and the Amazon VPC CNI plugin for Kubernetes don't support dual-stack networking. Your clusters can assign IPv4 or IPv6 addresses to Pods and services, but can't assign both address types.
-
-Kubernetes graduated the Pod Security Admission (PSA) feature to beta. The feature is enabled by default. For more information, see Pod Security Admission in the Kubernetes documentation. PSA replaces the Pod Security Policy (PSP) admission controller. The PSP admission controller isn't supported and is scheduled for removal in Kubernetes version 1.25.
-
-The PSP admission controller enforces Pod security standards on Pods in a namespace based on specific namespace labels that set the enforcement level. For more information, see Pod Security Standards (PSS) and Pod Security Admission (PSA) in the Amazon EKS best practices guide.
-
-The kube-proxy image deployed with clusters is now the minimal base image maintained by Amazon EKS Distro (EKS-D). The image contains minimal packages and doesn't have shells or package managers.
-
-Kubernetes graduated ephemeral containers to beta. Ephemeral containers are temporary containers that run in the same namespace as an existing Pod. You can use them to observe the state of Pods and containers for troubleshooting and debugging purposes. This is especially useful for interactive troubleshooting when kubectl exec is insufficient because either a container has crashed or a container image doesn't include debugging utilities. An example of a container that includes a debugging utility is distroless images. For more information, see Debugging with an ephemeral debug container in the Kubernetes documentation.
-
-Kubernetes graduated the HorizontalPodAutoscaler autoscaling/v2 stable API to general availability. The HorizontalPodAutoscaler autoscaling/v2beta2 API is deprecated. It will be unavailable in 1.26.
-
-The goaway-chance option in the Kubernetes API server helps prevent HTTP/2 client connections from being stuck on a single API server instance, by randomly closing a connection. When the connection is closed, the client will try to reconnect, and will likely land on a different API server as a result of load balancing. Amazon EKS version 1.23 has enabled goaway-chance flag. If your workload running on Amazon EKS cluster uses a client that is not compatible with HTTP GOAWAY, we recommend that you update your client to handle GOAWAY by reconnecting on connection termination.
-
-For the complete Kubernetes 1.23 changelog, see https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.23.md#changelog-since-v1220.
-
+**For the complete Kubernetes 1.23 changelog, see https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.23.md#changelog-since-v1220.**
 
 
 
