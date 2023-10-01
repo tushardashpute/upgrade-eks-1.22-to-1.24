@@ -108,5 +108,6 @@ _**Release Notes 1.24**_
 
 **Risks**
 
-ServiceAccount will no longer support automatic secret token creation
+ServiceAccount will no longer support automatic secret token creation.
+
 This issue has been evaluated and resolution is provided [here.](https://github.com/tushardashpute/Service-Account-Token-Creation-1.24.git)
